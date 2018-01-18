@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+	<head>
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300|Josefin+Slab|Arvo|Lato|Vollkorn|Abril+Fatface|Old+Standard+TT|Droid+Sans|Lobster|Inconsolata|Montserrat|Playfair+Display|Karla|Alegreya|Libre+Baskerville|Merriweather|Lora|Archivo+Narrow|Neuton|Signika|Questrial|Fjalla+One|Bitter|Varela+Round);
+      html,body{
+        margin:0;
+        padding:0;
+      }
+      .background {
+        fill: #aae0ff;
+        pointer-events: all;
+      }
+
+      .map-layer {
+        fill: #fff;
+        stroke: #aaa;
+      }
+
+      .effect-layer{
+        pointer-events:none;
+      }
+
+      text{
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        font-weight: 300;
+      }
+
+      text.big-text{
+        font-size: 30px;
+        font-weight: 400;
+      }
+
+      .effect-layer text, text.dummy-text{
+        font-size: 12px;
+      }
+
+    </style>
+	</head>
+	<body>
+    <svg id="europe"></svg>
+
+		<script src="https://d3js.org/d3.v4.min.js"></script>
+		<script type="text/javascript">
+      var width = window.innerWidth, height = window.innerHeight, currentCountry;
+
+      var unrewealedContries = [];
+
+      // Define color scale
+      var color = d3.scaleLinear()
+        .domain([1, 20])
+        .clamp(true)
+        .range(['#fff', '#409A99']);
+
+
+			 // create mercator projection
+      var projection = d3.geoMercator()
+        .scale(width / 2 / Math.PI)
+        // Center the Map in Europe
+        .translate([width / 2, height / 2]);
+
+      var path = d3.geoPath()
+        .projection(projection);
+
+        // Set svg width & height
+         var svg = d3.select('#europe')
+          .attr('width', width)
+          .attr('height', height);
+        svg.append('rect')
+          .attr('class', 'background')
+          .attr('width', width)
+          .attr('height', height);
+
+        var g = svg.append("g");
+
+
+        var mapLayer = g.append('g')
+          .classed('map-layer', true);
+
+        var bigText = g.append('text')
+          .classed('big-text', true)
+          .attr('x', 20)
+          .attr('y', 45);
+
+
+        function clicked(d){
+            var x, y, k;
+            if(getName(d) === currentCountry){
+                d.properties.correct = true;
+                generateNewRandomCountry();
+            }
+              // Highlight the clicked province
+          mapLayer.selectAll('path')
+            .style('fill', function(d){return isCorrect(d) ? '#70D58B' : '#fff';});
+
+
+        }
+        // Add background
+        var url = "./world.geojson";//"http://enjalot.github.io/wwsd/data/world/world-110m.geojson";
+
+        d3.json(url, function(err, geojson) {
+          geojson.features.forEach(function(data){
+             unrewealedContries.push(data.properties.name);
+          });
+          
+
+          var features = geojson.features;
+
+            mapLayer.selectAll("path")
+              .data(features)
+              .enter().append('path')
+                .attr('d', path)
+                .attr('vector-effect', 'non-scaling-stroke')
+                .style('fill', '#fff')
+                .on("click",clicked)
+
+            generateNewRandomCountry();
+
+        })
+
+        function isCorrect(d){
+          return d && d.properties ? d.properties.correct : null;
+        }
+         function getName(d){
+          return d && d.properties ? d.properties.name : null;
+        }
+        // Get province name length
+        function nameLength(d){
+          var n = getName(d);
+          return n ? n.length : 0;
+        }
+
+        // Get province color
+        function getFill(d){
+          return color(nameLength(d));
+        }
+       
+        function generateNewRandomCountry(){
+          bigText
+            .style('font-family', 'Fjalla One')
+            .text(getRandomCountry);
+        }
+        function getRandomCountry(){
+          var randomIndex = Math.floor((unrewealedContries.length-1) * Math.random());
+          currentCountry = unrewealedContries[randomIndex];
+          unrewealedContries = unrewealedContries.splice(randomIndex);
+
+          return  currentCountry;
+        }
+		</script>
+	</body>
+</html>
