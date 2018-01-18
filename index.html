@@ -3,7 +3,8 @@
 <html>
 	<head>
     <style>
-      @import url(https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300|Josefin+Slab|Arvo|Lato|Vollkorn|Abril+Fatface|Old+Standard+TT|Droid+Sans|Lobster|Inconsolata|Montserrat|Playfair+Display|Karla|Alegreya|Libre+Baskerville|Merriweather|Lora|Archivo+Narrow|Neuton|Signika|Questrial|Fjalla+One|Bitter|Varela+Round);
+      @import url(https://fonts.googleapis.com/css?family=Fjalla+One);
+    /*  @import url(https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300|Josefin+Slab|Arvo|Lato|Vollkorn|Abril+Fatface|Old+Standard+TT|Droid+Sans|Lobster|Inconsolata|Montserrat|Playfair+Display|Karla|Alegreya|Libre+Baskerville|Merriweather|Lora|Archivo+Narrow|Neuton|Signika|Questrial|Fjalla+One|Bitter|Varela+Round);*/
       html,body{
         margin:0;
         padding:0;
@@ -39,7 +40,7 @@
     </style>
 	</head>
 	<body>
-    <svg></svg>
+    <svg  xmlns="http://www.w3.org/2000/svg"></svg>
 
 		<script src="https://d3js.org/d3.v4.min.js"></script>
 		<script type="text/javascript">
@@ -60,7 +61,7 @@
 
 			 // create mercator projection
       var projection = d3.geoMercator()
-        .scale(width / 2 / Math.PI)
+        .scale(150)
         // Center the Map in Europe
         .translate([width / 2, height / 2]);
 
@@ -84,8 +85,8 @@
 
         var bigText = g.append('text')
           .classed('big-text', true)
-          .attr('x', 20)
-          .attr('y', 45);
+          .attr('x', width/2-100)
+          .attr('y', height - 10);
 
 
         function clicked(d){
