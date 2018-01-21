@@ -2,15 +2,18 @@
 <meta charset="utf-8">
 <html>
 	<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
     <style>
       @import url(https://fonts.googleapis.com/css?family=Fjalla+One);
     /*  @import url(https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300|Josefin+Slab|Arvo|Lato|Vollkorn|Abril+Fatface|Old+Standard+TT|Droid+Sans|Lobster|Inconsolata|Montserrat|Playfair+Display|Karla|Alegreya|Libre+Baskerville|Merriweather|Lora|Archivo+Narrow|Neuton|Signika|Questrial|Fjalla+One|Bitter|Varela+Round);*/
       html,body{
         margin:0;
         padding:0;
+        
       }
       .background {
-        fill: #aae0ff;
+        fill:  #aae0ff;
         pointer-events: all;
       }
 
@@ -37,14 +40,53 @@
         font-size: 12px;
       }
 
+      .card {
+        margin-top:3em;
+        padding-top: 5em;
+        padding-bottom: 5em;
+        text-align:center;
+        background: #fd746c;  /* fallback for old browsers */
+        background: -webkit-linear-gradient(to right, #ff9068, #fd746c);  /* Chrome 10-25, Safari 5.1-6 */
+        background: linear-gradient(to right, #ff9068, #fd746c); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+
+        border:none;
+
+      }
+      a ,a:hover{
+
+        color:#efefef;
+        text-decoration: none; 
+      }
+      .card-title{
+       
+      }
+      .card:hover{
+        opacity: 0.8;
+
+      }
+      body{
+        background:#333;
+        color:white;
+      }
+
     </style>
 	</head>
 	<body>
+    <div class="container-fluid text-center" id="gamecontainer">
+      <div class="display-2">D3js Geogame</div>
+      <h3 >Please select game</h3>
+      <div class="row" id="cards">
+        
+        
+        </div>
+    </div>
     <svg  xmlns="http://www.w3.org/2000/svg"></svg>
 
 		<script src="https://d3js.org/d3.v4.min.js"></script>
 		<script type="text/javascript">
       var width = window.innerWidth, height = window.innerHeight, currentCountry;
+
+      var svg, g, path, mapLayer, bigText, loc;
 
       var unrewealedContries = [];
 
@@ -52,44 +94,64 @@
       var url = new URL(url_string);
       var loc = url.searchParams.get("location");
 
+     var games = [
+          {"location":"world","name":"World contries"},
+          {"location":"asia","name":"Contries in Asia"},
+          {"location":"oceania","name":"Contries in Oceania"},
+          {"location":"america","name":"Contries in America"},
+          {"location":"europe","name":"Contries in Europe"},
+          {"location":"north-america","name":"Contries in North America"},
+          {"location":"states","name":"Name the state"}
+        ]
+      function createGameCards(){
+          var cards = d3.select('#cards');
+          cards.selectAll('div').data(games).enter()
+          .append('a').attr('class', 'col-md-6').attr('href',function(d){return url+'?'+'location='+ d.location})
+          .append('div')
+            .attr('class', 'card')
+            .append('h3').attr('class', 'card-title')
+            .text(function (d) { return d.name; })
+            // add mouseover effect to change background color to black
+    
+
+      }
+
+      function initMap(){
+
+         // create mercator projection
+        projection = d3.geoMercator()
+          .scale(150)
+          // Center the Map in Europe
+          .translate([width / 2, height / 2]);
+        // Set svg width & height
+        svg = d3.select('svg');
+        svg.attr('width', width)
+              .attr('height', height);
+
+        //Create background
+        svg.append('rect')
+              .attr('class', 'background')
+              .attr('width', width)
+              .attr('height', height);
+        
+        path = d3.geoPath().projection(projection);
+        g = svg.append("g");
+        mapLayer = g.append('g')
+          .classed('map-layer', true);
+        bigText = g.append('text')
+          .classed('big-text', true)
+          .attr('x', width/2-100)
+          .attr('y', height - 10);
+      }
+
+  
       // Define color scale
       var color = d3.scaleLinear()
         .domain([1, 20])
         .clamp(true)
         .range(['#fff', '#409A99']);
-
-
-			 // create mercator projection
-      var projection = d3.geoMercator()
-        .scale(150)
-        // Center the Map in Europe
-        .translate([width / 2, height / 2]);
-
-      var path = d3.geoPath()
-        .projection(projection);
-
-        // Set svg width & height
-         var svg = d3.select('svg')
-          .attr('width', width)
-          .attr('height', height);
-        svg.append('rect')
-          .attr('class', 'background')
-          .attr('width', width)
-          .attr('height', height);
-
-        var g = svg.append("g");
-
-
-        var mapLayer = g.append('g')
-          .classed('map-layer', true);
-
-        var bigText = g.append('text')
-          .classed('big-text', true)
-          .attr('x', width/2-100)
-          .attr('y', height - 10);
-
-
-        function clicked(d){
+      
+      function clicked(d){
             var x, y, k;
             if(getName(d) === currentCountry){
                 d.properties.correct = true;
@@ -98,32 +160,38 @@
               // Highlight the clicked province
           mapLayer.selectAll('path')
             .style('fill', function(d){return isCorrect(d) ? '#70D58B' : '#fff';});
-
-
         }
+
         // Add background
-        var url = "./data/"+loc+".geojson";//"http://enjalot.github.io/wwsd/data/world/world-110m.geojson";
-
-        d3.json(url, function(err, geojson) {
-          geojson.features.forEach(function(data){
-             unrewealedContries.push(data.properties.name);
-          });
+        (function() {
+ 
           
+          var url = "./data/"+loc+".geojson";//"http://enjalot.github.io/wwsd/data/world/world-110m.geojson";
+          if(!loc){
+            createGameCards();
 
-          var features = geojson.features;
+          } else {
+            d3.select('#gamecontainer').remove();
+            initMap();
+            d3.json(url, function(err, geojson) {
+             geojson.features.forEach(function(data){
+                 unrewealedContries.push(data.properties.name);
+              });
+              var features = geojson.features;
 
-            mapLayer.selectAll("path")
-              .data(features)
-              .enter().append('path')
-                .attr('d', path)
-                .attr('vector-effect', 'non-scaling-stroke')
-                .style('fill', '#fff')
-                .on("click",clicked)
+              mapLayer.selectAll("path")
+                  .data(features)
+                  .enter().append('path')
+                    .attr('d', path)
+                    .attr('vector-effect', 'non-scaling-stroke')
+                    .style('fill', '#fff')
+                    .on("click",clicked)
 
-            generateNewRandomCountry();
+                generateNewRandomCountry();
 
-        })
-
+            })
+          }
+        })();
         function isCorrect(d){
           return d && d.properties ? d.properties.correct : null;
         }
